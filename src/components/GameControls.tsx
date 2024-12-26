@@ -24,9 +24,14 @@ export function GameControls({
   gameState,
   canSplit,
 }: GameControlsProps) {
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      onCheck();
+  const handleNumberClick = (num: number | 'backspace') => {
+    if (num === 'backspace') {
+      onGuessChange(userGuess.slice(0, -1));
+    } else {
+      const newValue = userGuess + num.toString();
+      if (parseInt(newValue) <= 30) { // Prevent unreasonable values
+        onGuessChange(newValue);
+      }
     }
   };
 
@@ -41,24 +46,39 @@ export function GameControls({
       {showInputs && !feedback && (
         <div>
           <h3 className="text-lg font-semibold mb-4">What's your hand value?</h3>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            <input
-              type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={userGuess}
-              onChange={(e) => onGuessChange(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="px-4 py-2 border rounded w-full sm:w-24 text-lg"
-              placeholder="Value"
-            />
-            <button
-              onClick={onCheck}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 
-                       transition-colors text-lg font-medium"
-            >
-              Check
-            </button>
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-24 h-12 border rounded flex items-center justify-center text-lg font-medium bg-gray-50">
+              {userGuess || '0'}
+            </div>
+            <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                <button
+                  key={num}
+                  onClick={() => handleNumberClick(num)}
+                  className="p-4 bg-gray-100 rounded hover:bg-gray-200 text-lg font-medium"
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                onClick={() => handleNumberClick('backspace')}
+                className="p-4 bg-gray-200 rounded hover:bg-gray-300 text-lg font-medium"
+              >
+                ←
+              </button>
+              <button
+                onClick={() => handleNumberClick(0)}
+                className="p-4 bg-gray-100 rounded hover:bg-gray-200 text-lg font-medium"
+              >
+                0
+              </button>
+              <button
+                onClick={onCheck}
+                className="p-4 bg-blue-500 text-white rounded hover:bg-blue-600 text-lg font-medium"
+              >
+                ✓
+              </button>
+            </div>
           </div>
         </div>
       )}
