@@ -206,7 +206,7 @@ export default function App() {
       <div className="max-w-4xl mx-auto bg-[#2d6a4f] rounded-xl p-4 sm:p-8 shadow-2xl">
         <GameHeader onNewHand={startNewGame} gameState={gameState} />
         
-        <div className="space-y-8">
+        <div className="relative">
           <GameTable
             playerCards={playerCards}
             dealerCards={dealerCards}
@@ -217,17 +217,19 @@ export default function App() {
           />
 
           {gameState !== 'initial' && (
-            <GameControls
-              userGuess={userGuess}
-              onGuessChange={setUserGuess}
-              onCheck={checkAnswer}
-              onHit={canHitMore ? hit : undefined}
-              onStay={canStay ? stay : undefined}
-              onSplit={canSplit ? handleSplit : undefined}
-              feedback={feedback}
-              gameState={gameState}
-              canSplit={canSplit}
-            />
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+              <GameControls
+                userGuess={userGuess}
+                onGuessChange={setUserGuess}
+                onCheck={checkAnswer}
+                onHit={canHitMore ? hit : undefined}
+                onStay={canStay ? stay : undefined}
+                onSplit={canSplit ? handleSplit : undefined}
+                feedback={feedback}
+                gameState={gameState}
+                canSplit={canSplit}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -237,7 +239,7 @@ export default function App() {
           message={alert} 
           onClose={() => {
             setAlert(null);
-              startNewGame();
+            startNewGame();
           }} 
         />
       )}

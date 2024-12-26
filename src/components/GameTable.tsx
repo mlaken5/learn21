@@ -21,10 +21,10 @@ export function GameTable({
   currentHandIndex = 0 
 }: GameTableProps) {
   return (
-    <div className="space-y-8">
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-white mb-4">Dealer's Cards</h2>
-        <div className="flex items-center">
+    <div className="space-y-4">
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-white mb-2">Dealer's Cards</h2>
+        <div className="flex items-center min-h-[120px]">
           {gameState !== 'initial' ? (
             <>
               <Card card={dealerCards[0]} />
@@ -42,15 +42,15 @@ export function GameTable({
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-4">
         {splitHands.length > 0 ? (
           <>
             {splitHands.map((hand, index) => (
               <div key={index} className="mb-4">
-                <h2 className="text-xl font-semibold text-white mb-4">
+                <h2 className="text-xl font-semibold text-white mb-2">
                   Hand {index + 1} {index === currentHandIndex && '(Active)'}
                 </h2>
-                <div className="flex items-center">
+                <div className="flex items-center min-h-[120px]">
                   {hand.map((card, cardIndex) => (
                     <Card key={cardIndex} card={card} />
                   ))}
@@ -60,8 +60,8 @@ export function GameTable({
           </>
         ) : (
           <>
-            <h2 className="text-xl font-semibold text-white mb-4">Your Cards</h2>
-            <div className="flex items-center">
+            <h2 className="text-xl font-semibold text-white mb-2">Your Cards</h2>
+            <div className="flex items-center min-h-[120px]">
               {playerCards.map((card, index) => (
                 <Card key={index} card={card} />
               ))}

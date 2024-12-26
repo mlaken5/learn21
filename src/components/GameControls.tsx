@@ -38,7 +38,7 @@ export function GameControls({
   const showInputs = gameState === 'playing';
 
   return (
-    <div className="bg-[#f5f7f6] bg-opacity-95 p-4 sm:p-6 rounded-lg shadow-md">
+    <div className="bg-transparent p-2 rounded-lg">
       {feedback && (
         <p className="whitespace-pre-line mb-4 text-lg font-medium text-[#2c3e50]">{feedback}</p>
       )}
