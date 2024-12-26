@@ -207,7 +207,7 @@ export default function App() {
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
         <div className="flex justify-between items-center mb-4">
           <GameHeader onNewHand={startNewGame} gameState={gameState} />
-          {gameState !== 'initial' && (
+          {gameState !== 'initial' && feedback && (
             <div className="flex items-center gap-2">
               <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
                             text-lg font-medium bg-white/20 text-white shadow-inner">
