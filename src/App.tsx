@@ -202,11 +202,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1b4332] p-4 sm:p-8">
-      <div className="max-w-4xl mx-auto bg-[#2d6a4f] rounded-xl p-4 sm:p-8 shadow-2xl">
-        <GameHeader onNewHand={startNewGame} gameState={gameState} />
-        
-        <div className="relative">
+    <div className="min-h-screen bg-[#1b4332] p-4">
+      <div className="max-w-4xl mx-auto bg-[#2d6a4f] rounded-xl p-4 shadow-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <GameHeader onNewHand={startNewGame} gameState={gameState} />
+          {gameState !== 'initial' && (
+            <div className="flex items-center gap-4">
+              <h3 className="text-lg font-semibold text-white">Hand value:</h3>
+              <div className="w-24 h-12 border-2 border-white rounded flex items-center justify-center 
+                            text-lg font-medium bg-white/20 text-white shadow-inner">
+                {userGuess || '0'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-6">
           <GameTable
             playerCards={playerCards}
             dealerCards={dealerCards}
@@ -217,7 +228,7 @@ export default function App() {
           />
 
           {gameState !== 'initial' && (
-            <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+            <div className="w-full flex justify-center">
               <GameControls
                 userGuess={userGuess}
                 onGuessChange={setUserGuess}
