@@ -202,14 +202,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1b4332] p-4">
-      <div className="max-w-4xl mx-auto bg-[#2d6a4f] rounded-xl p-4 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-[#1b4332] p-2">
+      <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
+        <div className="flex justify-between items-center mb-4">
           <GameHeader onNewHand={startNewGame} gameState={gameState} />
           {gameState !== 'initial' && (
-            <div className="flex items-center gap-4">
-              <h3 className="text-lg font-semibold text-white">Hand value:</h3>
-              <div className="w-24 h-12 border-2 border-white rounded flex items-center justify-center 
+            <div className="flex items-center gap-2">
+              <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
                             text-lg font-medium bg-white/20 text-white shadow-inner">
                 {userGuess || '0'}
               </div>
@@ -217,18 +216,20 @@ export default function App() {
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
-          <GameTable
-            playerCards={playerCards}
-            dealerCards={dealerCards}
-            showAllDealerCards={showAllDealerCards}
-            gameState={gameState}
-            splitHands={splitHands}
-            currentHandIndex={currentHandIndex}
-          />
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <GameTable
+              playerCards={playerCards}
+              dealerCards={dealerCards}
+              showAllDealerCards={showAllDealerCards}
+              gameState={gameState}
+              splitHands={splitHands}
+              currentHandIndex={currentHandIndex}
+            />
+          </div>
 
           {gameState !== 'initial' && (
-            <div className="w-full flex justify-center">
+            <div className="w-[180px] flex-none">
               <GameControls
                 userGuess={userGuess}
                 onGuessChange={setUserGuess}

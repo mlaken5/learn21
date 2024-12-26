@@ -21,10 +21,10 @@ export function GameTable({
   currentHandIndex = 0 
 }: GameTableProps) {
   return (
-    <div className="space-y-4">
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-white mb-2">Dealer's Cards</h2>
-        <div className="flex items-center min-h-[120px]">
+    <div className="space-y-2">
+      <div className="mb-2">
+        <h2 className="text-lg font-semibold text-white mb-1">Dealer's Cards</h2>
+        <div className="flex items-center min-h-[72px]">
           {gameState !== 'initial' ? (
             <>
               <Card card={dealerCards[0]} />
@@ -33,7 +33,7 @@ export function GameTable({
                   <Card key={index + 1} card={card} />
                 ))
               ) : (
-                <div className="w-16 h-24 bg-red-900 rounded-lg shadow-md m-1" />
+                <div className="w-12 h-18 bg-red-900 rounded-lg shadow-md m-0.5" />
               )}
             </>
           ) : (
@@ -42,15 +42,15 @@ export function GameTable({
         </div>
       </div>
 
-      <div className="mb-4">
+      <div>
         {splitHands.length > 0 ? (
           <>
             {splitHands.map((hand, index) => (
-              <div key={index} className="mb-4">
-                <h2 className="text-xl font-semibold text-white mb-2">
+              <div key={index} className="mb-2">
+                <h2 className="text-lg font-semibold text-white mb-1">
                   Hand {index + 1} {index === currentHandIndex && '(Active)'}
                 </h2>
-                <div className="flex items-center min-h-[120px]">
+                <div className="flex items-center min-h-[72px]">
                   {hand.map((card, cardIndex) => (
                     <Card key={cardIndex} card={card} />
                   ))}
@@ -60,8 +60,8 @@ export function GameTable({
           </>
         ) : (
           <>
-            <h2 className="text-xl font-semibold text-white mb-2">Your Cards</h2>
-            <div className="flex items-center min-h-[120px]">
+            <h2 className="text-lg font-semibold text-white mb-1">Your Cards</h2>
+            <div className="flex items-center min-h-[72px]">
               {playerCards.map((card, index) => (
                 <Card key={index} card={card} />
               ))}
