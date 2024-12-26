@@ -26,6 +26,7 @@ export default function App() {
   const [alert, setAlert] = useState<string | null>(null);
   const [splitHands, setSplitHands] = useState<CardType[][]>([]);
   const [currentHandIndex, setCurrentHandIndex] = useState(0);
+  const currentHandTotal = calculateHandValue(playerCards).total;
 
   const canHitMore = gameState === 'playing' && feedback && 
     (splitHands.length > 0 ? splitHands[currentHandIndex].length < 5 : playerCards.length < 5);
@@ -210,7 +211,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
                             text-lg font-medium bg-white/20 text-white shadow-inner">
-                {userGuess || '0'}
+                {currentHandTotal}
               </div>
             </div>
           )}
