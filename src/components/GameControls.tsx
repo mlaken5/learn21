@@ -29,7 +29,7 @@ export function GameControls({
       onGuessChange(userGuess.slice(0, -1));
     } else {
       const newValue = userGuess + num.toString();
-      if (parseInt(newValue) <= 30) { // Prevent unreasonable values
+      if (parseInt(newValue) <= 30) {
         onGuessChange(newValue);
       }
     }
@@ -38,43 +38,55 @@ export function GameControls({
   const showInputs = gameState === 'playing';
 
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+    <div className="bg-[#f5f7f6] bg-opacity-95 p-4 sm:p-6 rounded-lg shadow-md">
       {feedback && (
-        <p className="whitespace-pre-line mb-4 text-lg font-medium">{feedback}</p>
+        <p className="whitespace-pre-line mb-4 text-lg font-medium text-[#2c3e50]">{feedback}</p>
       )}
       
       {showInputs && !feedback && (
-        <div>
-          <h3 className="text-lg font-semibold mb-4">What's your hand value?</h3>
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-24 h-12 border rounded flex items-center justify-center text-lg font-medium bg-gray-50">
+        <div className="flex flex-row items-start justify-between gap-8">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold mb-4 text-[#2c3e50]">What's your hand value?</h3>
+            <div className="w-24 h-12 border-2 border-[#34495e] rounded flex items-center justify-center 
+                          text-lg font-medium bg-white shadow-inner">
               {userGuess || '0'}
             </div>
-            <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
+          </div>
+          
+          <div className="flex-none">
+            <div className="grid grid-cols-3 gap-2 w-[200px]">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                 <button
                   key={num}
                   onClick={() => handleNumberClick(num)}
-                  className="p-4 bg-gray-100 rounded hover:bg-gray-200 text-lg font-medium"
+                  className="w-14 h-14 bg-white bg-opacity-80 rounded-lg hover:bg-[#e8f5e9] 
+                           text-[#2c3e50] text-lg font-medium shadow-sm
+                           active:bg-[#c8e6c9] transition-colors"
                 >
                   {num}
                 </button>
               ))}
               <button
                 onClick={() => handleNumberClick('backspace')}
-                className="p-4 bg-gray-200 rounded hover:bg-gray-300 text-lg font-medium"
+                className="w-14 h-14 bg-[#eceff1] bg-opacity-90 rounded-lg hover:bg-[#cfd8dc] 
+                         text-[#2c3e50] text-lg font-medium shadow-sm
+                         active:bg-[#b0bec5] transition-colors"
               >
                 ←
               </button>
               <button
                 onClick={() => handleNumberClick(0)}
-                className="p-4 bg-gray-100 rounded hover:bg-gray-200 text-lg font-medium"
+                className="w-14 h-14 bg-white bg-opacity-80 rounded-lg hover:bg-[#e8f5e9] 
+                         text-[#2c3e50] text-lg font-medium shadow-sm
+                         active:bg-[#c8e6c9] transition-colors"
               >
                 0
               </button>
               <button
                 onClick={onCheck}
-                className="p-4 bg-blue-500 text-white rounded hover:bg-blue-600 text-lg font-medium"
+                className="w-14 h-14 bg-[#4caf50] bg-opacity-90 rounded-lg hover:bg-[#43a047] 
+                         text-white text-lg font-medium shadow-sm
+                         active:bg-[#388e3c] transition-colors"
               >
                 ✓
               </button>
@@ -89,8 +101,8 @@ export function GameControls({
             {onHit && (
               <button
                 onClick={onHit}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 
-                         transition-colors text-lg font-medium flex-1"
+                className="px-4 py-2 bg-[#81c784] text-[#1b5e20] rounded hover:bg-[#66bb6a] 
+                         transition-colors text-lg font-medium flex-1 shadow-sm"
               >
                 Hit
               </button>
@@ -98,8 +110,8 @@ export function GameControls({
             {onStay && (
               <button
                 onClick={onStay}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 
-                         transition-colors text-lg font-medium flex-1"
+                className="px-4 py-2 bg-[#90caf9] text-[#0d47a1] rounded hover:bg-[#64b5f6] 
+                         transition-colors text-lg font-medium flex-1 shadow-sm"
               >
                 Stay
               </button>
@@ -107,8 +119,8 @@ export function GameControls({
             {canSplit && onSplit && (
               <button
                 onClick={onSplit}
-                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 
-                         transition-colors text-lg font-medium flex-1"
+                className="px-4 py-2 bg-[#b39ddb] text-[#4527a0] rounded hover:bg-[#9575cd] 
+                         transition-colors text-lg font-medium flex-1 shadow-sm"
               >
                 Split
               </button>

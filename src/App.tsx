@@ -202,8 +202,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-green-800 p-4 sm:p-8">
-      <div className="max-w-4xl mx-auto bg-green-700 rounded-xl p-4 sm:p-8 shadow-2xl">
+    <div className="min-h-screen bg-[#1b4332] p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto bg-[#2d6a4f] rounded-xl p-4 sm:p-8 shadow-2xl">
         <GameHeader onNewHand={startNewGame} gameState={gameState} />
         
         <div className="space-y-8">
