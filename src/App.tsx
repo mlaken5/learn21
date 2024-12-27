@@ -217,7 +217,9 @@ export default function App() {
       const results = splitHands.map((hand, index) => {
         const handTotal = calculateHandValue(hand).total;
         const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
-        return `${handSummary}\n${determineWinner(handTotal, dealerTotal)}`;
+        const result = determineWinner(handTotal, dealerTotal);
+        handleGameResult(result, false, true); // Score split hands individually
+        return `${handSummary}\n${result}`;
       });
       setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
     } else {
@@ -232,8 +234,13 @@ export default function App() {
     setIsDoubled(false); // Reset doubled state
   };
 
-  const handleGameResult = (result: string, isDouble: boolean = false) => {
-    const multiplier = isDouble ? 2 : 1;
+  const handleGameResult = (result: string, isDouble: boolean = false, isSplit: boolean = false) => {
+    const basePoints = 1; // Standard hand is worth 1 point
+    let multiplier = basePoints;
+    
+    if (isDouble) multiplier *= 2; // Double makes the hand worth 2x
+    if (isSplit) multiplier = basePoints; // Split hands are worth base points each
+    
     const isPlayerWin = result.toLowerCase().includes('player wins');
     const isDealerWin = result.toLowerCase().includes('dealer wins');
     
@@ -242,21 +249,20 @@ export default function App() {
     } else if (isDealerWin) {
       setSessionScore(prev => prev - multiplier);
     }
+    // Ties (push) don't affect score
   };
 
   return (
     <div className="min-h-screen bg-[#1b4332] p-2">
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
-            <GameHeader onNewHand={startNewGame} gameState={gameState} />
-            <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
-                            text-lg font-medium bg-white/20 text-white shadow-inner">
-              {sessionScore}
-            </div>
+        <div className="flex items-center mb-4">
+          <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
+                        text-lg font-medium bg-white/20 text-white shadow-inner mr-4">
+            {sessionScore}
           </div>
+          <GameHeader onNewHand={startNewGame} gameState={gameState} />
           {gameState !== 'initial' && feedback && (
-            <div className="flex items-center gap-2">
+            <div className="ml-auto">
               <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
                             text-lg font-medium bg-white/20 text-white shadow-inner">
                 {currentHandTotal}
