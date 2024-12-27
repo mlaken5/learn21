@@ -11,6 +11,8 @@ interface GameControlsProps {
   feedback: string;
   gameState: GameState;
   canSplit: boolean;
+  onDouble?: () => void;
+  canDouble: boolean;
 }
 
 export function GameControls({
@@ -23,6 +25,8 @@ export function GameControls({
   feedback,
   gameState,
   canSplit,
+  onDouble,
+  canDouble,
 }: GameControlsProps) {
   const handleNumberClick = (num: number | 'backspace') => {
     if (num === 'backspace') {
@@ -111,6 +115,15 @@ export function GameControls({
                        transition-colors text-lg font-medium"
             >
               Stay
+            </button>
+          )}
+          {canDouble && onDouble && (
+            <button
+              onClick={onDouble}
+              className="px-4 py-2 bg-yellow-500/80 text-white rounded hover:bg-yellow-600/80 
+                       transition-colors text-lg font-medium"
+            >
+              Double
             </button>
           )}
           {canSplit && onSplit && (

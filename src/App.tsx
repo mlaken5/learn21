@@ -27,12 +27,15 @@ export default function App() {
   const [splitHands, setSplitHands] = useState<CardType[][]>([]);
   const [currentHandIndex, setCurrentHandIndex] = useState(0);
   const currentHandTotal = calculateHandValue(playerCards).total;
+  const [sessionScore, setSessionScore] = useState(0);
+  const [isDoubled, setIsDoubled] = useState(false);
 
   const canHitMore = gameState === 'playing' && feedback && 
     (splitHands.length > 0 ? splitHands[currentHandIndex].length < 5 : playerCards.length < 5);
   const canStay = gameState === 'playing' && feedback;
   const canSplit = gameState === 'playing' && playerCards.length === 2 && 
     playerCards[0].rank === playerCards[1].rank && splitHands.length === 0;
+  const canDouble = gameState === 'playing' && feedback && playerCards.length === 2;
 
   const formatHandSummary = (cards: Card[], total: number, label: string) => {
     const cardStr = cards.map(c => `${c.rank}${c.suit}`).join(', ');
@@ -159,7 +162,31 @@ export default function App() {
     }
   };
 
-  const stay = () => {
+  const handleDouble = () => {
+    if (!canDouble || deck.length === 0) return;
+    
+    const newCard = deck[0];
+    const newDeck = deck.slice(1);
+    const newPlayerCards = [...playerCards, newCard];
+    
+    setPlayerCards(newPlayerCards);
+    setDeck(newDeck);
+    setIsDoubled(true);
+    
+    const { total: playerTotal } = calculateHandValue(newPlayerCards);
+    if (playerTotal > 21) {
+      setGameState('playerBust');
+      setShowAllDealerCards(true);
+      const dealerTotal = calculateHandValue(dealerCards).total;
+      const result = determineWinner(playerTotal, dealerTotal);
+      handleGameResult(result, true);
+      setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
+    } else {
+      stay(true); // Pass true to indicate it's a doubled bet
+    }
+  };
+
+  const stay = (doubled: boolean = false) => {
     if (splitHands.length > 0 && currentHandIndex < splitHands.length - 1) {
       // Move to next split hand
       setCurrentHandIndex(currentHandIndex + 1);
@@ -196,17 +223,38 @@ export default function App() {
     } else {
       const playerTotal = calculateHandValue(playerCards).total;
       const playerSummary = formatHandSummary(playerCards, playerTotal, 'Player');
-      setAlert(`${dealerSummary}\n${playerSummary}\n\n${determineWinner(playerTotal, dealerTotal)}`);
+      const result = determineWinner(playerTotal, dealerTotal);
+      handleGameResult(result, doubled || isDoubled);
+      setAlert(`${dealerSummary}\n${playerSummary}\n\n${result}`);
     }
     
     setGameState('complete');
+    setIsDoubled(false); // Reset doubled state
+  };
+
+  const handleGameResult = (result: string, isDouble: boolean = false) => {
+    const multiplier = isDouble ? 2 : 1;
+    const isPlayerWin = result.toLowerCase().includes('player wins');
+    const isDealerWin = result.toLowerCase().includes('dealer wins');
+    
+    if (isPlayerWin) {
+      setSessionScore(prev => prev + multiplier);
+    } else if (isDealerWin) {
+      setSessionScore(prev => prev - multiplier);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#1b4332] p-2">
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
         <div className="flex justify-between items-center mb-4">
-          <GameHeader onNewHand={startNewGame} gameState={gameState} />
+          <div className="flex items-center gap-4">
+            <GameHeader onNewHand={startNewGame} gameState={gameState} />
+            <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
+                            text-lg font-medium bg-white/20 text-white shadow-inner">
+              {sessionScore}
+            </div>
+          </div>
           {gameState !== 'initial' && feedback && (
             <div className="flex items-center gap-2">
               <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
@@ -238,9 +286,11 @@ export default function App() {
                 onHit={canHitMore ? hit : undefined}
                 onStay={canStay ? stay : undefined}
                 onSplit={canSplit ? handleSplit : undefined}
+                onDouble={canDouble ? handleDouble : undefined}
                 feedback={feedback}
                 gameState={gameState}
                 canSplit={canSplit}
+                canDouble={canDouble}
               />
             </div>
           )}
