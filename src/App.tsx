@@ -36,8 +36,8 @@ export default function App() {
   const canSplit = gameState === 'playing' && playerCards.length === 2 && 
     playerCards[0].rank === playerCards[1].rank && splitHands.length === 0;
   const canDouble = gameState === 'playing' && feedback && 
-    playerCards.length === 2 && !isDoubled && 
-    (splitHands.length === 0 || splitHands[currentHandIndex].length === 2) ? true : false;
+    (playerCards.length === 2 || (splitHands.length > 0 && splitHands[currentHandIndex].length === 2)) && 
+    !isDoubled;
 
   const formatHandSummary = (cards: Card[], total: number, label: string) => {
     const cardStr = cards.map(c => `${c.rank}${c.suit}`).join(', ');
@@ -180,8 +180,11 @@ export default function App() {
     setPlayerCards(newPlayerCards);
     setDeck(newDeck);
     setIsDoubled(true);
+    setUserGuess('');
+    setFeedback('');
     
     const { total: playerTotal } = calculateHandValue(newPlayerCards);
+    
     if (playerTotal > 21) {
       setGameState('playerBust');
       setShowAllDealerCards(true);
@@ -190,7 +193,9 @@ export default function App() {
       handleGameResult(result, true);
       setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
     } else {
-      // Always stay after double
+      // Force check of new total before staying
+      const { total: finalTotal, explanation } = calculateHandValue(newPlayerCards);
+      setFeedback(`Correct! ${explanation}`);
       stay(true);
     }
   };
@@ -222,14 +227,13 @@ export default function App() {
     const dealerSummary = formatHandSummary(currentDealerCards, dealerTotal, 'Dealer');
     
     if (splitHands.length > 0) {
-      // Handle multiple hands
       const results = splitHands.map((hand, index) => {
         const handTotal = calculateHandValue(hand).total;
         const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
         const result = determineWinner(handTotal, dealerTotal);
-        // Check if this split hand was doubled
+        // Each split hand is treated as a separate base bet
         const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
-        handleGameResult(result, wasDoubled); // Now only 2 arguments
+        handleGameResult(result, wasDoubled);
         return `${handSummary}\n${result}`;
       });
       setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
@@ -246,18 +250,19 @@ export default function App() {
   };
 
   const handleGameResult = (result: string, isDouble: boolean = false) => {
-    let points = 1; // Base bet is 1 unit
+    const baseBet = 1; // Default bet is 1 unit
+    let finalBet = baseBet;
     
     if (isDouble) {
-      points = 2; // Double makes the bet 2 units
+      finalBet = baseBet * 2; // Double makes it 2 units
     }
 
     if (result.includes('Blackjack! Player wins')) {
-      setSessionScore(prev => prev + 1); // Blackjack pays 1 unit
+      setSessionScore(prev => prev + baseBet); // Blackjack always pays 1 unit
     } else if (result.toLowerCase().includes('player wins')) {
-      setSessionScore(prev => prev + points);
+      setSessionScore(prev => prev + finalBet);
     } else if (result.toLowerCase().includes('dealer wins')) {
-      setSessionScore(prev => prev - points);
+      setSessionScore(prev => prev - finalBet);
     }
     // Push (tie) doesn't affect score
   };
@@ -305,8 +310,8 @@ export default function App() {
                 onDouble={canDouble ? handleDouble : undefined}
               feedback={feedback}
               gameState={gameState}
-                canSplit={canSplit}
-                canDouble={canDouble}
+                canSplit={canSplit as boolean}
+                canDouble={canDouble as boolean}
             />
             </div>
           )}
