@@ -76,13 +76,13 @@ export default function App() {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nPush - Both have Blackjack!`);
       } else {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nBlackjack! Player wins!`);
-        handleGameResult('Blackjack! Player wins');
+        handleGameResult('Blackjack! Player wins', 1);
       }
       setGameState('complete');
     } else if (dealerShowsAce && dealerHasTenCard) {
       setShowAllDealerCards(true);
       setAlert(`${dealerSummary}\n${playerSummary}\n\nDealer Blackjack!`);
-      handleGameResult('Dealer wins');
+      handleGameResult('Dealer wins', 1);
       setGameState('complete');
     }
   };
@@ -190,13 +190,10 @@ export default function App() {
       setShowAllDealerCards(true);
       const dealerTotal = calculateHandValue(dealerCards).total;
       const result = determineWinner(playerTotal, dealerTotal);
-      handleGameResult(result, true);
+      handleGameResult(result, 2); // Double is worth 2 points
       setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
     } else {
-      // Force check of new total before staying
-      const { total: finalTotal, explanation } = calculateHandValue(newPlayerCards);
-      setFeedback(`Correct! ${explanation}`);
-      stay(true);
+      stay(true); // Force stay after doubling
     }
   };
 
@@ -231,9 +228,9 @@ export default function App() {
         const handTotal = calculateHandValue(hand).total;
         const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
         const result = determineWinner(handTotal, dealerTotal);
-        // Each split hand is treated as a separate base bet
         const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
-        handleGameResult(result, wasDoubled);
+        const points = wasDoubled ? 2 : 1;
+        handleGameResult(result, points);
         return `${handSummary}\n${result}`;
       });
       setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
@@ -241,7 +238,8 @@ export default function App() {
       const playerTotal = calculateHandValue(playerCards).total;
       const playerSummary = formatHandSummary(playerCards, playerTotal, 'Player');
       const result = determineWinner(playerTotal, dealerTotal);
-      handleGameResult(result, doubled || isDoubled);
+      const points = doubled || isDoubled ? 2 : 1;
+      handleGameResult(result, points);
       setAlert(`${dealerSummary}\n${playerSummary}\n\n${result}`);
     }
     
@@ -249,10 +247,7 @@ export default function App() {
     setIsDoubled(false); // Reset doubled state
   };
 
-  const handleGameResult = (result: string, isDouble: boolean = false, isSplit: boolean = false) => {
-    const baseBet = 1;
-    let points = isDouble ? baseBet * 2 : baseBet;
-    
+  const handleGameResult = (result: string, points: number) => {
     if (result.toLowerCase().includes('player wins')) {
       setSessionScore(prev => prev + points);
     } else if (result.toLowerCase().includes('dealer wins')) {
