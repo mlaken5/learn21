@@ -5,7 +5,11 @@ export type Card = {
 
 export type GameState = 'initial' | 'playing' | 'playerBust' | 'dealerTurn' | 'complete';
 
-export const calculateHandValue = (cards: Card[]): { total: number; explanation: string } => {
+export const calculateHandValue = (cards: Card[]): { 
+  total: number; 
+  altTotal?: number;
+  explanation: string 
+} => {
   let value = 0;
   let aces = 0;
   const calculations: string[] = [];
@@ -23,20 +27,22 @@ export const calculateHandValue = (cards: Card[]): { total: number; explanation:
     }
   });
 
-  // Then add aces optimally
+  // Calculate both possible values with aces
+  let altValue = value;
+  let mainValue = value;
+  
   for (let i = 0; i < aces; i++) {
-    if (value + 11 <= 21) {
-      value += 11;
-      calculations.push('A (11)');
-    } else {
-      value += 1;
-      calculations.push('A (1)');
-    }
+    altValue += 1;
+    mainValue += (mainValue + 11 <= 21) ? 11 : 1;
   }
 
+  const explanation = `${calculations.join(' + ')}${aces > 0 ? 
+    `\nAces can make this hand worth ${altValue} or ${mainValue}` : ''}`;
+
   return {
-    total: value,
-    explanation: `${calculations.join(' + ')}${aces > 0 ? '\nAces can be worth 1 or 11' : ''}`
+    total: mainValue,
+    altTotal: aces > 0 ? altValue : undefined,
+    explanation
   };
 };
 

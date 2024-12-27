@@ -1,6 +1,6 @@
 {
-  "name": "Blackjack Trainer",
-  "short_name": "Blackjack",
+  "name": "Learn21",
+  "short_name": "Learn21",
   "description": "Learn and practice blackjack hand calculations",
   "start_url": "/",
   "display": "standalone",

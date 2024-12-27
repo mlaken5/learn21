@@ -88,7 +88,7 @@ export default function App() {
   };
 
   const checkAnswer = () => {
-    const { total: actualTotal, explanation } = calculateHandValue(playerCards);
+    const { total, altTotal, explanation } = calculateHandValue(playerCards);
     const guessedValue = parseInt(userGuess);
 
     if (isNaN(guessedValue)) {
@@ -96,13 +96,13 @@ export default function App() {
       return;
     }
 
-    if (guessedValue === actualTotal) {
+    if (guessedValue === total || (altTotal && guessedValue === altTotal)) {
       setFeedback(`Correct! ${explanation}`);
-      if (actualTotal === 21) {
+      if (total === 21 || (altTotal && altTotal === 21)) {
         stay();
       }
     } else {
-      setFeedback(`Incorrect. The correct value is ${actualTotal}\n${explanation}`);
+      setFeedback(`Incorrect. The hand can be worth ${total}${altTotal ? ` or ${altTotal}` : ''}\n${explanation}`);
     }
   };
 
@@ -249,22 +249,16 @@ export default function App() {
     setIsDoubled(false); // Reset doubled state
   };
 
-  const handleGameResult = (result: string, isDouble: boolean = false) => {
-    const baseBet = 1; // Default bet is 1 unit
-    let finalBet = baseBet;
+  const handleGameResult = (result: string, isDouble: boolean = false, isSplit: boolean = false) => {
+    const baseBet = 1;
+    let points = isDouble ? baseBet * 2 : baseBet;
     
-    if (isDouble) {
-      finalBet = baseBet * 2; // Double makes it 2 units
-    }
-
-    if (result.includes('Blackjack! Player wins')) {
-      setSessionScore(prev => prev + baseBet); // Blackjack always pays 1 unit
-    } else if (result.toLowerCase().includes('player wins')) {
-      setSessionScore(prev => prev + finalBet);
+    if (result.toLowerCase().includes('player wins')) {
+      setSessionScore(prev => prev + points);
     } else if (result.toLowerCase().includes('dealer wins')) {
-      setSessionScore(prev => prev - finalBet);
+      setSessionScore(prev => prev - points);
     }
-    // Push (tie) doesn't affect score
+    // Push doesn't affect score
   };
 
   return (
