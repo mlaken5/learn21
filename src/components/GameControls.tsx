@@ -102,7 +102,7 @@ export function GameControls({
           {onHit && (
             <button
               onClick={onHit}
-              className="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30 
+              className="px-4 py-2 bg-green-500/80 text-white rounded hover:bg-green-600/80 
                        transition-colors text-lg font-medium"
             >
               Hit
@@ -111,7 +111,7 @@ export function GameControls({
           {onStay && (
             <button
               onClick={onStay}
-              className="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30 
+              className="px-4 py-2 bg-red-500/80 text-white rounded hover:bg-red-600/80 
                        transition-colors text-lg font-medium"
             >
               Stay
@@ -129,7 +129,7 @@ export function GameControls({
           {canSplit && onSplit && (
             <button
               onClick={onSplit}
-              className="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30 
+              className="px-4 py-2 bg-purple-500/80 text-white rounded hover:bg-purple-600/80 
                        transition-colors text-lg font-medium"
             >
               Split

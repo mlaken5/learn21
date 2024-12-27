@@ -76,7 +76,7 @@ export default function App() {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nPush - Both have Blackjack!`);
       } else {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nBlackjack! Player wins!`);
-        handleGameResult('Player wins');
+        handleGameResult('Blackjack! Player wins');
       }
       setGameState('complete');
     } else if (dealerShowsAce && dealerHasTenCard) {
@@ -190,7 +190,8 @@ export default function App() {
       handleGameResult(result, true);
       setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
     } else {
-      stay(true); // Pass true to indicate it's a doubled bet
+      // Always stay after double
+      stay(true);
     }
   };
 
@@ -228,7 +229,7 @@ export default function App() {
         const result = determineWinner(handTotal, dealerTotal);
         // Check if this split hand was doubled
         const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
-        handleGameResult(result, wasDoubled, true);
+        handleGameResult(result, wasDoubled); // Now only 2 arguments
         return `${handSummary}\n${result}`;
       });
       setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
@@ -244,16 +245,16 @@ export default function App() {
     setIsDoubled(false); // Reset doubled state
   };
 
-  const handleGameResult = (result: string, isDouble: boolean = false, isSplit: boolean = false) => {
-    const basePoints = 1; // Each hand is worth 1 unit
-    let points = basePoints;
+  const handleGameResult = (result: string, isDouble: boolean = false) => {
+    let points = 1; // Base bet is 1 unit
     
     if (isDouble) {
-      points = 2; // Double makes it worth 2 units
+      points = 2; // Double makes the bet 2 units
     }
-    
-    // Handle the scoring
-    if (result.toLowerCase().includes('player wins')) {
+
+    if (result.includes('Blackjack! Player wins')) {
+      setSessionScore(prev => prev + 1); // Blackjack pays 1 unit
+    } else if (result.toLowerCase().includes('player wins')) {
       setSessionScore(prev => prev + points);
     } else if (result.toLowerCase().includes('dealer wins')) {
       setSessionScore(prev => prev - points);
