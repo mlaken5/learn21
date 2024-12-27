@@ -35,7 +35,9 @@ export default function App() {
   const canStay = gameState === 'playing' && feedback;
   const canSplit = gameState === 'playing' && playerCards.length === 2 && 
     playerCards[0].rank === playerCards[1].rank && splitHands.length === 0;
-  const canDouble = gameState === 'playing' && feedback && playerCards.length === 2;
+  const canDouble = gameState === 'playing' && feedback && 
+    playerCards.length === 2 && !isDoubled && 
+    (splitHands.length === 0 || splitHands[currentHandIndex].length === 2) ? true : false;
 
   const formatHandSummary = (cards: Card[], total: number, label: string) => {
     const cardStr = cards.map(c => `${c.rank}${c.suit}`).join(', ');
@@ -43,6 +45,10 @@ export default function App() {
   };
 
   const startNewGame = () => {
+    if (gameState === 'initial') {
+      setSessionScore(0);
+    }
+    
     const { playerCards: newPlayerCards, dealerCards: newDealerCards, deck: newDeck } = dealInitialHand();
     setPlayerCards(newPlayerCards);
     setDealerCards(newDealerCards);
@@ -70,11 +76,13 @@ export default function App() {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nPush - Both have Blackjack!`);
       } else {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nBlackjack! Player wins!`);
+        handleGameResult('Player wins');
       }
       setGameState('complete');
     } else if (dealerShowsAce && dealerHasTenCard) {
       setShowAllDealerCards(true);
       setAlert(`${dealerSummary}\n${playerSummary}\n\nDealer Blackjack!`);
+      handleGameResult('Dealer wins');
       setGameState('complete');
     }
   };
@@ -218,7 +226,9 @@ export default function App() {
         const handTotal = calculateHandValue(hand).total;
         const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
         const result = determineWinner(handTotal, dealerTotal);
-        handleGameResult(result, false, true); // Score split hands individually
+        // Check if this split hand was doubled
+        const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
+        handleGameResult(result, wasDoubled, true);
         return `${handSummary}\n${result}`;
       });
       setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
@@ -235,21 +245,20 @@ export default function App() {
   };
 
   const handleGameResult = (result: string, isDouble: boolean = false, isSplit: boolean = false) => {
-    const basePoints = 1; // Standard hand is worth 1 point
-    let multiplier = basePoints;
+    const basePoints = 1; // Each hand is worth 1 unit
+    let points = basePoints;
     
-    if (isDouble) multiplier *= 2; // Double makes the hand worth 2x
-    if (isSplit) multiplier = basePoints; // Split hands are worth base points each
-    
-    const isPlayerWin = result.toLowerCase().includes('player wins');
-    const isDealerWin = result.toLowerCase().includes('dealer wins');
-    
-    if (isPlayerWin) {
-      setSessionScore(prev => prev + multiplier);
-    } else if (isDealerWin) {
-      setSessionScore(prev => prev - multiplier);
+    if (isDouble) {
+      points = 2; // Double makes it worth 2 units
     }
-    // Ties (push) don't affect score
+    
+    // Handle the scoring
+    if (result.toLowerCase().includes('player wins')) {
+      setSessionScore(prev => prev + points);
+    } else if (result.toLowerCase().includes('dealer wins')) {
+      setSessionScore(prev => prev - points);
+    }
+    // Push (tie) doesn't affect score
   };
 
   return (
@@ -260,7 +269,7 @@ export default function App() {
                         text-lg font-medium bg-white/20 text-white shadow-inner mr-4">
             {sessionScore}
           </div>
-          <GameHeader onNewHand={startNewGame} gameState={gameState} />
+        <GameHeader onNewHand={startNewGame} gameState={gameState} />
           {gameState !== 'initial' && feedback && (
             <div className="ml-auto">
               <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
@@ -273,31 +282,31 @@ export default function App() {
 
         <div className="flex gap-4">
           <div className="flex-1">
-            <GameTable
-              playerCards={playerCards}
-              dealerCards={dealerCards}
-              showAllDealerCards={showAllDealerCards}
-              gameState={gameState}
+          <GameTable
+            playerCards={playerCards}
+            dealerCards={dealerCards}
+            showAllDealerCards={showAllDealerCards}
+            gameState={gameState}
               splitHands={splitHands}
               currentHandIndex={currentHandIndex}
-            />
+          />
           </div>
 
           {gameState !== 'initial' && (
             <div className="w-[180px] flex-none">
-              <GameControls
-                userGuess={userGuess}
-                onGuessChange={setUserGuess}
-                onCheck={checkAnswer}
-                onHit={canHitMore ? hit : undefined}
-                onStay={canStay ? stay : undefined}
+            <GameControls
+              userGuess={userGuess}
+              onGuessChange={setUserGuess}
+              onCheck={checkAnswer}
+              onHit={canHitMore ? hit : undefined}
+              onStay={canStay ? stay : undefined}
                 onSplit={canSplit ? handleSplit : undefined}
                 onDouble={canDouble ? handleDouble : undefined}
-                feedback={feedback}
-                gameState={gameState}
+              feedback={feedback}
+              gameState={gameState}
                 canSplit={canSplit}
                 canDouble={canDouble}
-              />
+            />
             </div>
           )}
         </div>
@@ -308,7 +317,7 @@ export default function App() {
           message={alert} 
           onClose={() => {
             setAlert(null);
-            startNewGame();
+              startNewGame();
           }} 
         />
       )}
