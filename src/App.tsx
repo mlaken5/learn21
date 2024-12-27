@@ -36,8 +36,7 @@ export default function App() {
   const canSplit = gameState === 'playing' && playerCards.length === 2 && 
     playerCards[0].rank === playerCards[1].rank && splitHands.length === 0;
   const canDouble = gameState === 'playing' && feedback && 
-    (playerCards.length === 2 || (splitHands.length > 0 && splitHands[currentHandIndex].length === 2)) && 
-    !isDoubled;
+    (playerCards.length === 2 || (splitHands.length > 0 && splitHands[currentHandIndex].length === 2));
 
   const formatHandSummary = (cards: Card[], total: number, label: string) => {
     const cardStr = cards.map(c => `${c.rank}${c.suit}`).join(', ');
@@ -180,20 +179,20 @@ export default function App() {
     setPlayerCards(newPlayerCards);
     setDeck(newDeck);
     setIsDoubled(true);
-    setUserGuess('');
-    setFeedback('');
     
     const { total: playerTotal } = calculateHandValue(newPlayerCards);
+    setUserGuess('');
+    setFeedback(`Hand value is ${playerTotal}`);
     
     if (playerTotal > 21) {
       setGameState('playerBust');
       setShowAllDealerCards(true);
       const dealerTotal = calculateHandValue(dealerCards).total;
       const result = determineWinner(playerTotal, dealerTotal);
-      handleGameResult(result, 2); // Double is worth 2 points
+      handleGameResult(result, 2);
       setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
     } else {
-      stay(true); // Force stay after doubling
+      stay(true);
     }
   };
 
@@ -260,11 +259,7 @@ export default function App() {
     <div className="min-h-screen bg-[#1b4332] p-2">
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
         <div className="flex items-center mb-4">
-          <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
-                        text-lg font-medium bg-white/20 text-white shadow-inner mr-4">
-            {sessionScore}
-          </div>
-        <GameHeader onNewHand={startNewGame} gameState={gameState} />
+          <GameHeader onNewHand={startNewGame} gameState={gameState} />
           {gameState !== 'initial' && feedback && (
             <div className="ml-auto">
               <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
