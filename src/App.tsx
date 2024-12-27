@@ -174,67 +174,34 @@ export default function App() {
     
     const newCard = deck[0];
     const newDeck = deck.slice(1);
+    const newPlayerCards = [...playerCards, newCard];
     
-    if (splitHands.length > 0) {
-      // Handle doubling on split hand
-      const newSplitHands = [...splitHands];
-      newSplitHands[currentHandIndex] = [...newSplitHands[currentHandIndex], newCard];
-      setSplitHands(newSplitHands);
-      setPlayerCards(newSplitHands[currentHandIndex]);
-      setDeck(newDeck);
-      setIsDoubled(true);
-      
-      const { total: playerTotal } = calculateHandValue(newSplitHands[currentHandIndex]);
-      setUserGuess('');
-      setFeedback(`Hand value is ${playerTotal}`);
-      
-      if (playerTotal > 21) {
-        if (currentHandIndex < splitHands.length - 1) {
-          // Move to next split hand if busted
-          setCurrentHandIndex(currentHandIndex + 1);
-          setPlayerCards(splitHands[currentHandIndex + 1]);
-          setUserGuess('');
-          setFeedback('');
-        } else {
-          // All hands complete, show dealer's hand
-          finishHand();
-        }
-      } else {
-        // Move to next hand or finish if this was the last hand
-        if (currentHandIndex < splitHands.length - 1) {
-          setCurrentHandIndex(currentHandIndex + 1);
-          setPlayerCards(splitHands[currentHandIndex + 1]);
-          setUserGuess('');
-          setFeedback('');
-        } else {
-          finishHand();
-        }
-      }
+    setPlayerCards(newPlayerCards);
+    setDeck(newDeck);
+    setIsDoubled(true);
+    
+    // Calculate the total with all cards including the doubled card
+    const { total: playerTotal } = calculateHandValue(newPlayerCards);
+    setUserGuess('');
+    setFeedback(`Hand value is ${playerTotal}`);
+    
+    if (playerTotal > 21) {
+      setGameState('playerBust');
+      setShowAllDealerCards(true);
+      const dealerTotal = calculateHandValue(dealerCards).total;
+      const result = determineWinner(playerTotal, dealerTotal);
+      handleGameResult(result, 2);
+      setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
     } else {
-      // Handle doubling on regular hand
-      const newPlayerCards = [...playerCards, newCard];
-      setPlayerCards(newPlayerCards);
-      setDeck(newDeck);
-      setIsDoubled(true);
-      
-      const { total: playerTotal } = calculateHandValue(newPlayerCards);
-      setUserGuess('');
-      setFeedback(`Hand value is ${playerTotal}`);
-      
-      if (playerTotal > 21) {
-        setGameState('playerBust');
-        setShowAllDealerCards(true);
-        const dealerTotal = calculateHandValue(dealerCards).total;
-        const result = determineWinner(playerTotal, dealerTotal);
-        handleGameResult(result, 2);
-        setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
-      } else {
-        stay(true);
-      }
+      // Pass the new player cards to stay to ensure correct total
+      stay(true, newPlayerCards);
     }
   };
 
-  const stay = (doubled: boolean = false) => {
+  const stay = (doubled: boolean = false, doubledCards?: Card[]) => {
+    // Use doubledCards if provided (for doubles), otherwise use current playerCards
+    const currentPlayerCards = doubledCards || playerCards;
+    
     if (splitHands.length > 0 && currentHandIndex < splitHands.length - 1) {
       // Move to next split hand
       setCurrentHandIndex(currentHandIndex + 1);
@@ -258,30 +225,18 @@ export default function App() {
     setDeck(currentDeck);
 
     const dealerTotal = calculateHandValue(currentDealerCards).total;
-    const dealerSummary = formatHandSummary(currentDealerCards, dealerTotal, 'Dealer');
+    const playerTotal = calculateHandValue(currentPlayerCards).total;
     
-    if (splitHands.length > 0) {
-      const results = splitHands.map((hand, index) => {
-        const handTotal = calculateHandValue(hand).total;
-        const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
-        const result = determineWinner(handTotal, dealerTotal);
-        const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
-        const points = wasDoubled ? 2 : 1;
-        handleGameResult(result, points);
-        return `${handSummary}\n${result}`;
-      });
-      setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
-    } else {
-      const playerTotal = calculateHandValue(playerCards).total;
-      const playerSummary = formatHandSummary(playerCards, playerTotal, 'Player');
-      const result = determineWinner(playerTotal, dealerTotal);
-      const points = doubled || isDoubled ? 2 : 1;
-      handleGameResult(result, points);
-      setAlert(`${dealerSummary}\n${playerSummary}\n\n${result}`);
-    }
+    const dealerSummary = formatHandSummary(currentDealerCards, dealerTotal, 'Dealer');
+    const playerSummary = formatHandSummary(currentPlayerCards, playerTotal, 'Player');
+    const result = determineWinner(playerTotal, dealerTotal);
+    
+    const points = doubled ? 2 : 1;
+    handleGameResult(result, points);
+    setAlert(`${dealerSummary}\n${playerSummary}\n\n${result}`);
     
     setGameState('complete');
-    setIsDoubled(false); // Reset doubled state
+    setIsDoubled(false);
   };
 
   const handleGameResult = (result: string, points: number) => {
@@ -291,39 +246,6 @@ export default function App() {
       setSessionScore(prev => prev - points);
     }
     // Push doesn't affect score
-  };
-
-  // Add helper function to finish the hand
-  const finishHand = () => {
-    setGameState('dealerTurn');
-    setShowAllDealerCards(true);
-    let currentDealerCards = [...dealerCards];
-    let currentDeck = [...deck];
-    
-    while (calculateHandValue(currentDealerCards).total < 17 && currentDeck.length > 0) {
-      currentDealerCards.push(currentDeck[0]);
-      currentDeck = currentDeck.slice(1);
-    }
-
-    setDealerCards(currentDealerCards);
-    setDeck(currentDeck);
-    
-    const dealerTotal = calculateHandValue(currentDealerCards).total;
-    const dealerSummary = formatHandSummary(currentDealerCards, dealerTotal, 'Dealer');
-    
-    const results = splitHands.map((hand, index) => {
-      const handTotal = calculateHandValue(hand).total;
-      const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
-      const result = determineWinner(handTotal, dealerTotal);
-      const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
-      const points = wasDoubled ? 2 : 1;
-      handleGameResult(result, points);
-      return `${handSummary}\n${result}`;
-    });
-    
-    setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
-    setGameState('complete');
-    setIsDoubled(false);
   };
 
   return (
