@@ -14,6 +14,8 @@ import {
 } from './utils/blackjack';
 import { dealInitialHand } from './utils/deck';
 import { Card as CardType } from './utils/blackjack';
+import { WelcomeModal } from './components/WelcomeModal';
+import { InstallPrompt } from './components/InstallPrompt';
 
 export default function App() {
   const [playerCards, setPlayerCards] = useState<Card[]>([]);
@@ -248,7 +250,7 @@ export default function App() {
     const dealerTotal = calculateHandValue(currentDealerCards).total;
     const dealerSummary = formatHandSummary(currentDealerCards, dealerTotal, 'Dealer');
     
-    // Process all split hands
+    // Process all split hands and show all results
     const results = finalSplitHands.map((hand, index) => {
       const handTotal = calculateHandValue(hand).total;
       const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
@@ -256,11 +258,10 @@ export default function App() {
       const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
       const points = wasDoubled ? 2 : 1;
       handleGameResult(result, points);
-      return `${handSummary}\n${result}`;
+      return `Hand ${index + 1}: ${handSummary} - ${result}`;
     });
 
-    // Show dealer's hand and all split hand results
-    setAlert(`${dealerSummary}\n\n${results.join('\n\n')}`);
+    setAlert(`${dealerSummary}\n\n${results.join('\n')}`);
     setGameState('complete');
     setIsDoubled(false);
   };
@@ -330,6 +331,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#1b4332] p-2">
+      <WelcomeModal />
+      <InstallPrompt />
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
         <div className="flex items-center mb-4">
           <GameHeader onNewHand={startNewGame} gameState={gameState} />

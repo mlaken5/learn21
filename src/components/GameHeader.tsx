@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain } from 'lucide-react';
+import { Crown } from 'lucide-react';
 
 interface GameHeaderProps {
   onNewHand: () => void;
@@ -10,8 +10,8 @@ export function GameHeader({ onNewHand, gameState }: GameHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
       <div className="flex items-center">
-        <Brain className="w-8 h-8 text-white mr-2" />
-        <h1 className="text-3xl font-bold text-white">Blackjack Trainer</h1>
+        <Crown className="w-8 h-8 text-white mr-2" />
+        <h1 className="text-3xl font-bold text-white">Learn 21</h1>
       </div>
       <button
         onClick={onNewHand}
