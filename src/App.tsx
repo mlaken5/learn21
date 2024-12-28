@@ -134,6 +134,7 @@ export default function App() {
     const newDeck = deck.slice(1);
     
     if (splitHands.length > 0) {
+      // Handle split hands
       const newSplitHands = [...splitHands];
       newSplitHands[currentHandIndex] = [...newSplitHands[currentHandIndex], newCard];
       setSplitHands(newSplitHands);
@@ -146,21 +147,19 @@ export default function App() {
 
       if (playerTotal > 21) {
         if (currentHandIndex < splitHands.length - 1) {
-          // Move to next split hand if current busts
           setCurrentHandIndex(currentHandIndex + 1);
           setPlayerCards(splitHands[currentHandIndex + 1]);
           setUserGuess('');
           setFeedback('');
         } else {
-          // All hands complete, finish the game
           finishSplitHands(newSplitHands);
         }
       }
     } else {
+      // Regular hand - Remove the setIsDoubled line as it shouldn't be here
       const newPlayerCards = [...playerCards, newCard];
       setPlayerCards(newPlayerCards);
       setDeck(newDeck);
-      setIsDoubled(true);
       
       const { total: playerTotal } = calculateHandValue(newPlayerCards);
       setUserGuess('');
@@ -171,10 +170,8 @@ export default function App() {
         setShowAllDealerCards(true);
         const dealerTotal = calculateHandValue(dealerCards).total;
         const result = determineWinner(playerTotal, dealerTotal);
-        handleGameResult(result, 2);
+        handleGameResult(result, isDoubled ? 2 : 1); // Use existing isDoubled state
         setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
-      } else {
-        stay(true, newPlayerCards);
       }
     }
   };

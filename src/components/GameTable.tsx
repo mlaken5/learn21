@@ -33,7 +33,10 @@ export function GameTable({
                   <Card key={index + 1} card={card} />
                 ))
               ) : (
-                <div className="w-12 h-18 bg-red-900 rounded-lg shadow-md m-0.5" />
+                <div className="w-12 h-18 bg-red-900 rounded-lg shadow-md m-0.5 border-2 border-white/30 relative">
+                  <div className="absolute inset-2 border-2 border-white/20 rounded-sm"></div>
+                  <div className="absolute inset-4 bg-white/10 rounded-sm transform rotate-45"></div>
+                </div>
               )}
             </>
           ) : (
