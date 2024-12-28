@@ -17,11 +17,6 @@ import { Card as CardType } from './utils/blackjack';
 import { WelcomeModal } from './components/WelcomeModal';
 import { InstallPrompt } from './components/InstallPrompt';
 
-// Add a type for tracking doubled status of hands
-interface HandStatus {
-  isDoubled: boolean;
-}
-
 export default function App() {
   const [playerCards, setPlayerCards] = useState<Card[]>([]);
   const [dealerCards, setDealerCards] = useState<Card[]>([]);
@@ -36,7 +31,6 @@ export default function App() {
   const currentHandTotal = calculateHandValue(playerCards).total;
   const [sessionScore, setSessionScore] = useState(0);
   const [isDoubled, setIsDoubled] = useState(false);
-  const [handStatuses, setHandStatuses] = useState<HandStatus[]>([{ isDoubled: false }]);
 
   const canHitMore = gameState === 'playing' && feedback && 
     (splitHands.length > 0 ? splitHands[currentHandIndex].length < 5 : playerCards.length < 5);
@@ -55,8 +49,6 @@ export default function App() {
     if (gameState === 'initial') {
       setSessionScore(0);
     }
-    setHandStatuses([{ isDoubled: false }]);
-    setIsDoubled(false);
     
     const { playerCards: newPlayerCards, dealerCards: newDealerCards, deck: newDeck } = dealInitialHand();
     setPlayerCards(newPlayerCards);
@@ -85,13 +77,13 @@ export default function App() {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nPush - Both have Blackjack!`);
       } else {
         setAlert(`${dealerSummary}\n${playerSummary}\n\nBlackjack! Player wins!`);
-        handleGameResult('Blackjack! Player wins', false);
+        handleGameResult('Blackjack! Player wins', 1);
       }
       setGameState('complete');
     } else if (dealerShowsAce && dealerHasTenCard) {
       setShowAllDealerCards(true);
       setAlert(`${dealerSummary}\n${playerSummary}\n\nDealer Blackjack!`);
-      handleGameResult('Dealer wins', false);
+      handleGameResult('Dealer wins', 1);
       setGameState('complete');
     }
   };
@@ -118,18 +110,19 @@ export default function App() {
   const handleSplit = () => {
     if (!canSplit) return;
     
+    // Create two new hands
     const hand1 = [playerCards[0]];
     const hand2 = [playerCards[1]];
     
+    // Deal one card to each hand
     const newDeck = [...deck];
-    hand1.push(newDeck[0]);
-    hand2.push(newDeck[1]);
+    hand1.push(newDeck.shift()!);
+    hand2.push(newDeck.shift()!);
     
     setSplitHands([hand1, hand2]);
-    setHandStatuses([{ isDoubled: false }, { isDoubled: false }]);
     setCurrentHandIndex(0);
     setPlayerCards(hand1);
-    setDeck(newDeck.slice(2));
+    setDeck(newDeck);
     setUserGuess('');
     setFeedback('');
   };
@@ -179,7 +172,7 @@ export default function App() {
         setShowAllDealerCards(true);
         const dealerTotal = calculateHandValue(dealerCards).total;
         const result = determineWinner(playerTotal, dealerTotal);
-        handleGameResult(result, false);
+        handleGameResult(result, isDoubled ? 2 : 1);
         setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
       }
     }
@@ -192,34 +185,49 @@ export default function App() {
     const newDeck = deck.slice(1);
     
     if (splitHands.length > 0) {
+      // Handle doubling on split hand
       const newSplitHands = [...splitHands];
       newSplitHands[currentHandIndex] = [...newSplitHands[currentHandIndex], newCard];
-      
-      // Update status for this split hand
-      const newHandStatuses = [...handStatuses];
-      newHandStatuses[currentHandIndex].isDoubled = true;
-      
       setSplitHands(newSplitHands);
-      setHandStatuses(newHandStatuses);
       setPlayerCards(newSplitHands[currentHandIndex]);
       setDeck(newDeck);
+      setIsDoubled(true);
       
       const { total: playerTotal } = calculateHandValue(newSplitHands[currentHandIndex]);
-      if (playerTotal > 21) {
-        handleGameResult('Dealer wins - Player bust!', true);
+      setUserGuess('');
+      setFeedback(`Hand value is ${playerTotal}`);
+      
+      if (currentHandIndex < splitHands.length - 1) {
+        // Move to next split hand
+        setCurrentHandIndex(currentHandIndex + 1);
+        setPlayerCards(splitHands[currentHandIndex + 1]);
+        setUserGuess('');
+        setFeedback('');
+      } else {
+        // All hands complete, show dealer's hand
+        finishSplitHands(newSplitHands);
       }
-      stay(true);
     } else {
+      // Regular hand doubling (existing code)
       const newPlayerCards = [...playerCards, newCard];
       setPlayerCards(newPlayerCards);
       setDeck(newDeck);
-      setHandStatuses([{ isDoubled: true }]);
+      setIsDoubled(true);
       
       const { total: playerTotal } = calculateHandValue(newPlayerCards);
+      setUserGuess('');
+      setFeedback(`Hand value is ${playerTotal}`);
+      
       if (playerTotal > 21) {
-        handleGameResult('Dealer wins - Player bust!', true);
+        setGameState('playerBust');
+        setShowAllDealerCards(true);
+        const dealerTotal = calculateHandValue(dealerCards).total;
+        const result = determineWinner(playerTotal, dealerTotal);
+        handleGameResult(result, 2);
+        setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
+      } else {
+        stay(true, newPlayerCards);
       }
-      stay(true);
     }
   };
 
@@ -246,13 +254,15 @@ export default function App() {
       const handTotal = calculateHandValue(hand).total;
       const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
       const result = determineWinner(handTotal, dealerTotal);
-      
-      handleGameResult(result, handStatuses[index].isDoubled);
+      const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
+      const points = wasDoubled ? 2 : 1;
+      handleGameResult(result, points);
       return `${handSummary} - ${result}`;
     });
 
     setAlert(`${dealerSummary}\n\n${results.join('\n')}`);
     setGameState('complete');
+    setIsDoubled(false);
   };
 
   const stay = (doubled: boolean = false, doubledCards?: Card[]) => {
@@ -301,22 +311,21 @@ export default function App() {
     const playerSummary = formatHandSummary(currentPlayerCards, playerTotal, 'Player');
     const result = determineWinner(playerTotal, dealerTotal);
     
-    handleGameResult(result, doubled);
+    const points = doubled ? 2 : 1;
+    handleGameResult(result, points);
     setAlert(`${dealerSummary}\n${playerSummary}\n\n${result}`);
     
     setGameState('complete');
     setIsDoubled(false);
   };
 
-  const handleGameResult = (result: string, isDoubled: boolean) => {
-    const points = isDoubled ? 2 : 1;
-    
+  const handleGameResult = (result: string, points: number) => {
     if (result.toLowerCase().includes('player wins')) {
       setSessionScore(prev => prev + points);
-    } else if (result.toLowerCase().includes('dealer wins') || result.includes('bust')) {
+    } else if (result.toLowerCase().includes('dealer wins')) {
       setSessionScore(prev => prev - points);
     }
-    // Push (tie) doesn't affect score
+    // Push doesn't affect score
   };
 
   return (
@@ -324,17 +333,16 @@ export default function App() {
       <WelcomeModal />
       <InstallPrompt />
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center mb-4">
         <GameHeader onNewHand={startNewGame} gameState={gameState} />
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="text-white text-sm font-medium">Score:</div>
-            <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
-                          text-lg font-medium bg-white/20 text-white shadow-inner">
-              {sessionScore}
+          {gameState !== 'initial' && feedback && (
+            <div className="ml-auto">
+              <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
+                            text-lg font-medium bg-white/20 text-white shadow-inner">
+                {currentHandTotal}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex gap-4">
