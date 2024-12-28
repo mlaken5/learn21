@@ -254,8 +254,12 @@ export default function App() {
       const handTotal = calculateHandValue(hand).total;
       const handSummary = formatHandSummary(hand, handTotal, `Hand ${index + 1}`);
       const result = determineWinner(handTotal, dealerTotal);
-      const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
+      
+      // Check if this specific split hand was doubled
+      const wasDoubled = hand.length === 3 && 
+        (index === currentHandIndex ? isDoubled : false);
       const points = wasDoubled ? 2 : 1;
+      
       handleGameResult(result, points);
       return `${handSummary} - ${result}`;
     });
@@ -322,10 +326,10 @@ export default function App() {
   const handleGameResult = (result: string, points: number) => {
     if (result.toLowerCase().includes('player wins')) {
       setSessionScore(prev => prev + points);
-    } else if (result.toLowerCase().includes('dealer wins')) {
+    } else if (result.toLowerCase().includes('dealer wins') || result.includes('bust')) {
       setSessionScore(prev => prev - points);
     }
-    // Push (tie) doesn't affect score
+    // Push still doesn't affect score
   };
 
   return (
