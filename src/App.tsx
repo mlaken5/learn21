@@ -161,16 +161,18 @@ export default function App() {
       setPlayerCards(newPlayerCards);
       setDeck(newDeck);
       
-      const { total: playerTotal } = calculateHandValue(newPlayerCards);
+      // Reset user input to force new hand value entry
       setUserGuess('');
-      setFeedback(`Hand value is ${playerTotal}`);
+      setFeedback('');
       
+      // Only check for bust, don't show the total
+      const { total: playerTotal } = calculateHandValue(newPlayerCards);
       if (playerTotal > 21) {
         setGameState('playerBust');
         setShowAllDealerCards(true);
         const dealerTotal = calculateHandValue(dealerCards).total;
         const result = determineWinner(playerTotal, dealerTotal);
-        handleGameResult(result, isDoubled ? 2 : 1); // Use existing isDoubled state
+        handleGameResult(result, isDoubled ? 2 : 1);
         setAlert(`${formatHandSummary(dealerCards, dealerTotal, 'Dealer')}\n${formatHandSummary(newPlayerCards, playerTotal, 'Player')}\n\n${result}`);
       }
     }
@@ -255,7 +257,7 @@ export default function App() {
       const wasDoubled = hand.length === 3 && isDoubled && index === currentHandIndex;
       const points = wasDoubled ? 2 : 1;
       handleGameResult(result, points);
-      return `Hand ${index + 1}: ${handSummary} - ${result}`;
+      return `${handSummary} - ${result}`;
     });
 
     setAlert(`${dealerSummary}\n\n${results.join('\n')}`);
