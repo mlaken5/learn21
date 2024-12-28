@@ -325,7 +325,7 @@ export default function App() {
     } else if (result.toLowerCase().includes('dealer wins')) {
       setSessionScore(prev => prev - points);
     }
-    // Push doesn't affect score
+    // Push (tie) doesn't affect score
   };
 
   return (
@@ -333,16 +333,17 @@ export default function App() {
       <WelcomeModal />
       <InstallPrompt />
       <div className="max-w-md mx-auto bg-[#2d6a4f] rounded-xl p-3 shadow-2xl">
-        <div className="flex items-center mb-4">
-          <GameHeader onNewHand={startNewGame} gameState={gameState} />
-          {gameState !== 'initial' && feedback && (
-            <div className="ml-auto">
-              <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
-                            text-lg font-medium bg-white/20 text-white shadow-inner">
-                {currentHandTotal}
-              </div>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-4">
+            <GameHeader onNewHand={startNewGame} gameState={gameState} />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-white text-sm font-medium">Score:</div>
+            <div className="w-20 h-10 border-2 border-white rounded flex items-center justify-center 
+                          text-lg font-medium bg-white/20 text-white shadow-inner">
+              {sessionScore}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="flex gap-4">
